@@ -48,9 +48,15 @@ app.use((ctx, next) => {
 
 
 app.use(async (ctx, next) => {
-  const { method} = ctx.request.query;
-  console.log(ctx.request.querystring)
-  console.log(method)
+  const { method, id} = ctx.request.query;
+  const
+    {
+      status,
+      name,
+      description,
+    } = ctx.request.body;
+
+  const editingTicket = tickets.find((ticket) => ticket.id === id);
 
   switch (method) {
     case 'allTickets':
@@ -58,9 +64,8 @@ app.use(async (ctx, next) => {
       ctx.response.body = tickets;
       return;
     case 'createTicket':
-      const {name, description} =  ctx.request.body;
 
-
+      console.log(ctx.request.body);
 
       ctx.response.set('Access-Control-Allow-Origin', '*');
 
@@ -82,10 +87,10 @@ app.use(async (ctx, next) => {
 
       tickets.push(ticket);
 
-      ctx.response.body = 'ОК';
+      ctx.response.body = 'OK';
       return;
     case 'deleteTicket':
-      const { id } = ctx.request.query;
+
       console.log(ctx.request.query)
 
       ctx.response.set('Access-Control-Allow-Origin', '*');
@@ -94,6 +99,26 @@ app.use(async (ctx, next) => {
 
       ctx.response.body = 'OK';
       return;
+    case 'replaceStatus':
+
+        ctx.response.set('Access-Control-Allow-Origin', '*');
+
+
+        if (!editingTicket) return;
+        editingTicket.status = status;
+
+        ctx.response.body = 'OK';
+      return;
+    case 'replaceTicket':
+      ctx.response.set('Access-Control-Allow-Origin', '*');
+
+
+    if (!editingTicket) return;
+    editingTicket.name = name;
+    editingTicket.description = description;
+
+    ctx.response.body = 'OK';
+      return;
     default:
       ctx.response.status = 404;
       return;
@@ -101,65 +126,9 @@ app.use(async (ctx, next) => {
   next();
 });
 
-
-
-app.use((ctx, next) => {
-
-  if(ctx.request.method !== 'PATCH') {
-    next();
-
-    return;
-  }
-  const { method, id } = ctx.request.query;
-
-
-  console.log(method)
-
-  if(method === 'replaceTicket') {
-    ctx.response.set('Access-Control-Allow-Origin', '*');
-
-
-    const
-      {
-        name,
-        description,
-      } = ctx.request.body;
-
-    const editingTicket = tickets.find((ticket) => ticket.id === id);
-    console.log(editingTicket)
-    if (!editingTicket) return;
-    editingTicket.name = name;
-    editingTicket.description = description;
-
-    ctx.response.body = 'OK';
-    next();
-  }
-
-  if(method === 'replaceStatus') {
-
-    ctx.response.set('Access-Control-Allow-Origin', '*');
-
-    const
-      {
-        status
-      } = ctx.request.body;
-    console.log( id, status);
-
-    const editingTicket = tickets.find((ticket) => ticket.id === id);
-    if (!editingTicket) return;
-    editingTicket.status = status;
-
-    ctx.response.body = 'OK';
-    next();
-  }
-})
-
-
-
 const server = http.createServer(app.callback());
 
 const port = process.env.PORT || 8080;
-
 
 server.listen(port, (err) => {
   if (err) {
@@ -170,3 +139,4 @@ server.listen(port, (err) => {
 
   console.log('Server is listening to ' + port);
 });
+
